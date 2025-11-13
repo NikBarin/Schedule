@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>РАСПИСАШКА 📅</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1:#050b18;
+      --bg2:#0b1426;
+      --glass: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.12);
+      --accent: #67c8ff;
+      --accent-2: #d685ff;
+      --text:#eef5ff;
+      --muted:#9fb3d1;
+      font-family:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:radial-gradient(600px 400px at 10% 15%, rgba(103,200,255,0.1), transparent),
+                 radial-gradient(600px 400px at 90% 85%, rgba(214,133,255,0.07), transparent),
+                 linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--text);
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+      padding:12px;
+    }
+
+    header{
+      text-align:center;
+      padding:12px 0 8px 0;
+    }
+    .title{font-size:22px;font-weight:700;}
+    .subtitle{color:var(--muted);font-size:13px;}
+
+    .day-selector{
+      display:flex;
+      overflow-x:auto;
+      gap:8px;
+      justify-content:flex-start;
+      padding:10px 4px;
+      margin-bottom:12px;
+    }
+    .day-selector button{
+      flex-shrink:0;
+      background:rgba(255,255,255,0.05);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:0.2s;
+      white-space:nowrap;
+    }
+    .day-selector button.active{
+      background:linear-gradient(90deg, rgba(103,200,255,0.2), rgba(214,133,255,0.2));
+      border-color:var(--accent);
+    }
+
+    .schedule{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .lesson-card{
+      background:var(--glass);
+      border:1px solid var(--border);
+      backdrop-filter:blur(10px);
+      border-radius:14px;
+      padding:12px 16px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      transition:transform 0.15s ease;
+    }
+    .lesson-card:active{transform:scale(0.98);}
+    .lesson-time{color:var(--muted);font-weight:600;font-size:13px;}
+    .lesson-name{font-size:17px;font-weight:700;}
+    .lesson-info{display:flex;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--muted);}
+    .lesson-hw{font-size:14px;margin-top:4px;color:var(--accent);}
+    footer{text-align:center;color:var(--muted);font-size:12px;margin-top:auto;padding:12px 0;opacity:0.7;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">РАСПИСАШКА</div>
+    <div class="subtitle">Информация может быть неточной</div>
+  </header>
+
+  <div class="day-selector" id="daySelector">
+    <button class="active" data-day="Понедельник">Пн</button>
+    <button data-day="Вторник">Вт</button>
+    <button data-day="Среда">Ср</button>
+    <button data-day="Четверг">Чт</button>
+    <button data-day="Пятница">Пт</button>
+  </div>
+
+  <div class="schedule" id="scheduleList"></div>
+
+  <footer>Сделано с помощью ChatGPT</footer>
+
+  <script>
+    const times = ['12:40–13:20','13:40–14:20','14:40–15:20','15:40–16:20','16:30–17:10','17:20–18:00','18:10–18:50'];
+
+    const data = {
+      'Понедельник': [
+        { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '' },
+        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич', hw: '' },
+        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич', hw: '' },
+        { lesson: 'Английский / Информатика', room: '49а / 39', teacher: 'Иван Анатольевич', hw: '' },
+        { lesson: 'Русский язык', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
+        { lesson: 'Литература', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
+        { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: '' }
+      ],
+      'Вторник': [
+        { lesson: 'Физкультура', room: 'Большой зал', teacher: 'Сергей Александрович', hw: 'Какое ещё ДЗ по физре?' },
+        { lesson: 'Геометрия', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
+        { lesson: 'Английский язык', room: '30 / 49а', teacher: 'Оксана Евгеньевна', hw: '' },
+        { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '' },
+        { lesson: 'Музыка', room: '23', teacher: '—', hw: '' },
+        { lesson: 'История', room: '47', teacher: 'Павел Сергеевич', hw: '' },
+      ],
+      'Среда': [
+        { lesson: 'Информатика / Английский', room: 'Комп. лаб.', teacher: 'Кузнецова', hw: 'Сделать практику в IDE' },
+        { lesson: 'Математика', room: '201', teacher: 'Иванов', hw: '' },
+        { lesson: 'Физкультура', room: 'Спортзал', teacher: 'Козлов', hw: '' },
+        { lesson: 'История', room: '108', teacher: 'Левина', hw: '' },
+        { lesson: 'Русский язык', room: '204', teacher: 'Петров', hw: '' },
+        { lesson: 'Технология', room: '305', teacher: 'Никитина', hw: '' },
+        { lesson: 'Иностранный язык', room: '115', teacher: 'Смирнова', hw: '' }
+      ],
+      'Четверг': [
+        { lesson: 'История', room: '108', teacher: 'Левина', hw: 'Параграф 12, конспект' },
+        { lesson: 'Математика', room: '201', teacher: 'Иванов', hw: '' },
+        { lesson: 'Физика', room: '302', teacher: 'Сидоров', hw: '' },
+        { lesson: 'Информатика', room: 'Комп. лаб.', teacher: 'Кузнецова', hw: '' },
+        { lesson: 'Химия', room: '308', teacher: 'Горбунова', hw: '' },
+        { lesson: 'Биология', room: '210', teacher: 'Орлова', hw: '' },
+        { lesson: 'Английский язык', room: '115', teacher: 'Смирнова', hw: '' }
+      ],
+      'Пятница': [
+        { lesson: 'Английский язык', room: '115', teacher: 'Смирнова', hw: '' },
+        { lesson: 'Математика', room: '201', teacher: 'Иванов', hw: '' },
+        { lesson: 'Русский язык', room: '204', teacher: 'Петров', hw: '' },
+        { lesson: 'История', room: '108', teacher: 'Левина', hw: '' },
+        { lesson: 'Информатика', room: 'Комп. лаб.', teacher: 'Кузнецова', hw: '' },
+        { lesson: 'Физкультура', room: 'Спортзал', teacher: 'Козлов', hw: '' },
+        { lesson: 'Труд', room: '302', teacher: 'Сидоров', hw: '' }
+      ]
+    };
+
+    const list = document.getElementById('scheduleList');
+    const dayButtons = document.querySelectorAll('#daySelector button');
+
+    function renderDay(day){
+      dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
+      list.innerHTML = '';
+      data[day].forEach((row, i)=>{
+        const card = document.createElement('div');
+        card.className = 'lesson-card';
+        card.innerHTML = `
+          <div class="lesson-time">${times[i]}</div>
+          <div class="lesson-name">${row.lesson}</div>
+          <div class="lesson-info">
+            <span>Каб. ${row.room}</span>
+            <span>${row.teacher}</span>
+          </div>
+          ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    dayButtons.forEach(btn=>btn.addEventListener('click',()=>renderDay(btn.dataset.day)));
+    renderDay('Понедельник');
+  </script>
+</body>
+</html>
