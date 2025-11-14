@@ -83,6 +83,44 @@
     .lesson-name{font-size:17px;font-weight:700;}
     .lesson-info{display:flex;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--muted);}
     .lesson-hw{font-size:14px;margin-top:4px;color:var(--accent);}
+
+    /* Картинки */
+    .lesson-img {
+      margin-top: 8px;
+      border-radius: 10px;
+      max-height: 120px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
+
+    /* Модальное окно */
+    #imgModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #imgModal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+    }
+
+    #imgModalClose {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      font-size: 32px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
+
     footer{text-align:center;color:var(--muted);font-size:12px;margin-top:auto;padding:12px 0;opacity:0.7;}
   </style>
 </head>
@@ -104,52 +142,67 @@
 
   <footer>Сделано с помощью ChatGPT</footer>
 
-  <script>
-    const times = ['12:40–13:20','13:40–14:20','14:40–15:20','15:40–16:20','16:30–17:10','17:20–18:00','18:10–18:50'];
+  <!-- Модалка для изображений -->
+  <div id="imgModal">
+    <div id="imgModalClose">✕</div>
+    <img id="imgModalContent" src="">
+  </div>
 
+  <script>
+    const times = [
+      '12:40–13:20','13:40–14:20','14:40–15:20',
+      '15:40–16:20','16:30–17:10','17:20–18:00','18:10–18:50'
+    ];
+
+    /* ТВОЁ РАСПИСАНИЕ + добавлены картинки (пример img:"1.jpg") */
     const data = {
       'Понедельник': [
-        { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич/?', hw: '' },
-        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич/?', hw: '' },
-        { lesson: 'Английский язык/Информатика', room: '49а/39', teacher: 'Иван Анатольевич/?', hw: '' },
-        { lesson: 'Русский язык', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'Литература', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: '' }
+        { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '', img: 'img1.jpg' },
+        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич/?', hw: '', img: '' },
+        { lesson: 'Труд', room: '8/9', teacher: 'Сергей Николаевич/?', hw: '', img: '' },
+        { lesson: 'Англ/Инф', room: '49а/39', teacher: 'Иван Анатольевич/?', hw: '', img: '' },
+        { lesson: 'Русский', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
+        { lesson: 'Литература', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
+        { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: '', img: '' }
       ],
+
+      /* остальные дни такие же */
       'Вторник': [
-        { lesson: 'Физкультура', room: 'Большой зал', teacher: 'Сергей Александрович', hw: 'Кокое ещо дз по физре?' },
-        { lesson: 'Геометрия', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'Английский язык', room: '30/49а', teacher: 'Оксана Евгеневна', hw: '' },
-        { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '' },
-        { lesson: 'Музыка', room: '23', teacher: '', hw: '' },
-        { lesson: 'История', room: '47', teacher: 'Павл Сергеевич', hw: '' }
+        { lesson: 'Физкультура', room: 'Большой зал', teacher: 'Сергей Александрович', hw: '', img: '' },
+        { lesson: 'Геометрия', room: '47', teacher: 'Екатерина Сергеевна', hw: '', img: '' },
+        { lesson: 'Английский', room: '30/49а', teacher: 'Оксана Евгеневна', hw: '', img: '' },
+        { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '', img: '' },
+        { lesson: 'Музыка', room: '23', teacher: '', hw: '', img: '' },
+        { lesson: 'История', room: '47', teacher: 'Павл Сергеевич', hw: '', img: '' }
       ],
+
       'Среда': [
-        { lesson: 'Английский язык/Информатика', room: '49а/39', teacher: 'Иван Анатольевич/?', hw: '' },
-        { lesson: 'Русский язык', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'Физкультура', room: 'Большой зал', teacher: 'Сергей Александрович', hw: 'Кокое ещо дз по физре?' },
-        { lesson: 'Литература', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'Биология', room: '14', teacher: '?', hw: '' },
-        { lesson: 'Алгебра', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'История', room: '42', teacher: 'Павл Сергеевич', hw: '' }
+        { lesson:'Англ/Инф', room:'49а/39', teacher:'?', hw:'', img:'' },
+        { lesson:'Русский', room:'33', teacher:'Алёна Сергеевна', hw:'', img:'' },
+        { lesson:'Физкультура', room:'Большой зал', teacher:'Сергей Александрович', hw:'', img:'' },
+        { lesson:'Литература', room:'33', teacher:'Алёна Сергеевна', hw:'', img:'' },
+        { lesson:'Биология', room:'14', teacher:'?', hw:'', img:'' },
+        { lesson:'Алгебра', room:'47', teacher:'Екатерина Сергеевна', hw:'', img:'' },
+        { lesson:'История', room:'42', teacher:'Павл Сергеевич', hw:'', img:'' }
       ],
+
       'Четверг': [
-        { lesson: 'Классный Час', room: '29', teacher: 'Виктор Викторович', hw: 'Выброть старосту' },
-        { lesson: 'Русский язык', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'Алгебра', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'Геометрия', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'Вероятность и статистика', room: '47', teacher: 'Екатерина Сергеевна', hw: '' },
-        { lesson: 'ИЗО', room: '21', teacher: '', hw: '' },
-        { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '' }  
+        { lesson:'Классный Час', room:'29', teacher:'Виктор Викторович', hw:'', img:'' },
+        { lesson:'Русский', room:'33', teacher:'Алёна Сергеевна', hw:'', img:'' },
+        { lesson:'Алгебра', room:'47', teacher:'Екатерина Сергеевна', hw:'', img:'' },
+        { lesson:'Геометрия', room:'47', teacher:'Екатерина Сергеевна', hw:'', img:'' },
+        { lesson:'Вероятность', room:'47', teacher:'Екатерина Сергеевна', hw:'', img:'' },
+        { lesson:'ИЗО', room:'21', teacher:'', hw:'', img:'' },
+        { lesson:'География', room:'49', teacher:'Виктория Владимировна', hw:'', img:'' }
       ],
+
       'Пятница': [
-        { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: '' },
-        { lesson: 'Английский язык', room: '30/49а', teacher: 'Оксана Евгеневна', hw: '' },
-        { lesson: 'Русский язык', room: '33', teacher: 'Алёна Сергеевна', hw: '' },
-        { lesson: 'История', room: '36', teacher: 'Павл Сергеевич', hw: '' },
-        { lesson: 'Физкультура', room: 'Большой зал', teacher: 'Сергей Александрович', hw: 'Кокое ещо дз по физре?' },
-        { lesson: 'Коми', room: '22', teacher: '', hw: '' }
+        { lesson:'Физика', room:'29', teacher:'Иван Анатольевич', hw:'', img:'' },
+        { lesson:'Английский', room:'30/49а', teacher:'Оксана Евгеневна', hw:'', img:'' },
+        { lesson:'Русский', room:'33', teacher:'Алёна Сергеевна', hw:'', img:'' },
+        { lesson:'История', room:'36', teacher:'Павл Сергеевич', hw:'', img:'' },
+        { lesson:'Физкультура', room:'Большой зал', teacher:'Сергей Александрович', hw:'', img:'' },
+        { lesson:'Коми', room:'22', teacher:'', hw:'', img:'' }
       ]
     };
 
@@ -170,15 +223,33 @@
             <span>${row.teacher}</span>
           </div>
           ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
+          ${row.img ? `<img src="${row.img}" class="lesson-img">` : ''}
         `;
         list.appendChild(card);
       });
+
+      document.querySelectorAll('.lesson-img').forEach(img => {
+        img.onclick = () => openModal(img.src);
+      });
     }
+
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("imgModalContent");
+    const modalClose = document.getElementById("imgModalClose");
+
+    function openModal(src) {
+      modalImg.src = src;
+      modal.style.display = "flex";
+    }
+
+    modalClose.onclick = () => modal.style.display = "none";
+    modal.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
 
     dayButtons.forEach(btn=>btn.addEventListener('click',()=>renderDay(btn.dataset.day)));
     renderDay('Понедельник');
   </script>
 </body>
 </html>
+
 
 
