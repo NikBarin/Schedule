@@ -140,6 +140,21 @@
         { lesson:'Коми', room:'22', teacher:'', hw:'', img:'' }
       ]
     };
+
+    
+    const tbody = document.getElementById('schedule-body');
+    const dayButtons = document.querySelectorAll('#daySelector button');
+
+    function renderDay(day){
+      dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
+      tbody.innerHTML = '';
+      for(let i=0;i<7;i++){
+        const rowData = (data[day] && data[day][i]) || {lesson:'—',room:'—',teacher:'—',hw:''};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="time">${times[i]}</td><td class="lesson">${escapeHtml(rowData.lesson)}</td><td class="room">${escapeHtml(rowData.room)}</td><td class="teacher">${escapeHtml(rowData.teacher)}</td><td class="hw">${escapeHtml(rowData.hw || 'Нет ДЗ')}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
     function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
     dayButtons.forEach(btn=>btn.addEventListener('click',()=>renderDay(btn.dataset.day)));
@@ -148,6 +163,7 @@
   </script>
 </body>
 </html>
+
 
 
 
