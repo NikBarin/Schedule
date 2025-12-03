@@ -141,28 +141,6 @@
         { lesson:'Коми', room:'22', teacher:'Марина Ивановна', hw:'', img:'' }
       ]
     };
-    const list = document.getElementById('scheduleList');
-    const dayButtons = document.querySelectorAll('#daySelector button');
-
-    function renderDay(day){
-      dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
-      list.innerHTML = '';
-      data[day].forEach((row, i)=>{
-        const card = document.createElement('div');
-        card.className = 'lesson-card';
-        card.innerHTML = `
-          <div class="lesson-time">${times[i]}</div>
-          <div class="lesson-name">${row.lesson}</div>
-          <div class="lesson-info">
-            <span>Каб. ${row.room}</span>
-            <span>${row.teacher}</span>
-          </div>
-          ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
-          ${row.img ? `<img src="${row.img}" class="lesson-img">` : ''}
-        `;
-        list.appendChild(card);
-
-    
     const tbody = document.getElementById('schedule-body');
     const dayButtons = document.querySelectorAll('#daySelector button');
 
@@ -184,6 +162,7 @@
   </script>
 </body>
 </html>
+
 
 
 
