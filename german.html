@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Герман, мой любимый котик!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fcfafd;
+            text-align: center;
+        }
+        
+        .container {
+            width: 40%;
+            margin: auto;
+            padding-top: 50px;
+        }
+        
+        h1 {
+            color: #4a4a4a;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #ffb74d;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        button:hover {
+            background-color: #ffc107;
+        }
+        
+        p {
+            font-size: 18px;
+            color: #4a4a4a;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Привет, меня зовут Герман!</h1>
+    
+    <!-- Кот -->
+    <img id="catImage" src="https://via.placeholder.com/300.png/09f/fff/?text=Cat%20Here" alt="Герман">
+    
+    <!-- Уровень сытости и радости -->
+    <p><strong>Сытость:</strong> <span id="foodLevel">50</span>%</p>
+    <p><strong>Радость:</strong> <span id="joyLevel">50</span>%</p>
+    
+    <!-- Кнопки действий -->
+    <button onclick="feed()">Накормить Германа</button>
+    <button onclick="play()">Поиграть с Германом</button>
+</div>
+
+<script>
+// Начальные значения уровней
+let food = 50;
+let joy = 50;
+
+// Функция кормления кота
+function feed() {
+    if (food >= 100) return alert("Герман уже сытый!");
+    food += 10;
+    document.getElementById('foodLevel').innerText = Math.min(food, 100);
+}
+
+// Функция игры с котом
+function play() {
+    if (joy >= 100) return alert("Герману больше не хочется играться!");
+    joy += 10;
+    document.getElementById('joyLevel').innerText = Math.min(joy, 100);
+}
+</script>
+</body>
+</html>
