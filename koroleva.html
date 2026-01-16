@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>В Шуточное государство «Королева Коммунизма»</title>
+    <title>Виртуальное государство «Королева Коммунизма»</title>
     <style>
         :root {
-            --red: #D63737; /* яркий красный */
-            --gold: #FAAF17; /* золотой */
-            --purple: #800080; /* пурпурный */
+            --red: rgba(214, 55, 55, 0.9); /* яркий красный с прозрачностью */
+            --gold: rgba(250, 175, 23, 0.9); /* золотой с прозрачностью */
+            --purple: rgba(128, 0, 128, 0.9); /* пурпурный с прозрачностью */
             --text: #fff;
         }
 
@@ -22,6 +22,7 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(to right, var(--red), var(--purple));
             color: var(--text);
+            overflow-x: hidden;
         }
 
         .container {
@@ -36,6 +37,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
         }
 
         .logo {
@@ -67,6 +70,19 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero::before {
+            content: "";
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
         }
 
         .btn {
@@ -76,53 +92,60 @@
             padding: 15px 30px;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            mix-blend-mode: screen;
         }
 
         .btn:hover {
-            background: darken(var(--gold), 10%);
+            background: rgba(250, 175, 23, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Эффект блеска */
+        .hero h1 {
+            text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
+            animation: shine 3s infinite;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes shine {
+            0% {
+                text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
+                filter: brightness(100%);
+            }
+            50% {
+                text-shadow: 0 0 20px var(--gold), 0 0 30px var(--gold);
+                filter: brightness(150%);
+            }
+            100% {
+                text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
+                filter: brightness(100%);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Шапка -->
-    <header>
-        <div class="container">
-            <img src="images/queen-logo.png" alt="Королева Коммунизма" class="logo">
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="logo.png" alt="Логотип Королевы Коммунизма" width="60">
+            </div>
             <nav>
                 <ul>
-                    <li><a href="#home">Главная</a></li>
-                    <li><a href="#about">О государстве</a></li>
-                    <li><a href="#symbol">Символика</a></li>
-                    <li><a href="#economy">Экономика</a></li>
-                    <li><a href="#culture">Культура</a></li>
-                    <li><a href="#citizen">Стать гражданином</a></li>
+                    <li><a href="#">Главная</a></li>
+                    <li><a href="#">О государстве</a></li>
+                    <li><a href="#">Правила</a></li>
+                    <li><a href="#">Контакты</a></li>
                 </ul>
             </nav>
-        </div>
-    </header>
+        </header>
 
-    <!-- Главная секция -->
-    <section id="home" class="hero">
-        <div class="container">
-            <h1>Добро пожаловать в Королевство Коммунизма! Шуточный сайт и т.д</h1>
-            <p>«От каждого по способностям — каждому по потребностям!»</p>
-            <a href="#citizen" class="btn">Присоединиться</a>
-        </div>
-    </section>
-
-    <!-- Секция «О государстве» -->
-    <section id="about">
-        <div class="container">
-            <h2>О государстве</h2>
-            <p>Гибридный строй: монархия + советы трудящихся...</p>
-        </div>
-    </section>
-
-    <!-- Остальные секции (аналогично) -->
-
-    <footer>
-        <p>&copy; 2026 Королева Коммунизма</p>
-    </footer>
+        <section class="hero">
+            <h1>Добро пожаловать в виртуальное государство «Королева Коммунизма»!</h1>
+            <p>Строим утопию в цифровом мире!</p>
+            <button class="btn">Присоединиться</button>
+        </section>
+    </div>
 </body>
 </html>
