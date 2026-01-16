@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Виртуальное государство «Королева Коммунизма»</title>
+    <title>👑 Виртуальное государство «Королева Коммунизма» 👑</title>
     <style>
         :root {
-            --red: rgba(214, 55, 55, 0.9); /* яркий красный с прозрачностью */
-            --gold: rgba(250, 175, 23, 0.9); /* золотой с прозрачностью */
-            --purple: rgba(128, 0, 128, 0.9); /* пурпурный с прозрачностью */
+            --red: rgba(214, 55, 55, 0.9);
+            --gold: rgba(250, 175, 23, 0.9);
+            --purple: rgba(128, 0, 128, 0.9);
             --text: #fff;
+            --neon: rgba(255, 255, 0, 0.8);
         }
 
         * {
@@ -20,9 +21,17 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, var(--red), var(--purple));
+            background: linear-gradient(45deg, var(--red), var(--purple), var(--gold));
+            background-size: 400% 400%;
+            animation: gradient 10s ease infinite;
             color: var(--text);
             overflow-x: hidden;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
         }
 
         .container {
@@ -32,46 +41,47 @@
         }
 
         header {
-            background: var(--gold);
-            padding: 15px 0;
+            background: rgba(0,0,0,0.5);
+            padding: 20px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
         }
 
         .logo {
-            height: 60px;
+            height: 80px;
+            filter: drop-shadow(0 0 10px var(--gold));
         }
 
         nav ul {
             list-style: none;
             display: flex;
-            gap: 20px;
+            gap: 25px;
         }
 
         nav a {
             color: var(--text);
             text-decoration: none;
             transition: 0.3s;
+            text-shadow: 0 0 5px var(--neon);
         }
 
         nav a:hover {
-            opacity: 0.7;
+            opacity: 0.8;
+            transform: scale(1.1);
         }
 
         .hero {
-            background-image: url('images/background.jpg');
-            background-size: cover;
-            min-height: 400px;
+            background: radial-gradient(circle, rgba(0,0,0,0.8), rgba(0,0,0,0.9));
+            min-height: 600px;
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
-            backdrop-filter: blur(10px);
         }
 
         .hero::before {
@@ -86,66 +96,179 @@
         }
 
         .btn {
-            background: var(--gold);
+            background: linear-gradient(45deg, var(--gold), var(--red));
             color: var(--text);
             border: none;
-            padding: 15px 30px;
-            border-radius: 5px;
+            padding: 20px 40px;
+            border-radius: 25px;
             cursor: pointer;
             transition: background 0.3s, transform 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 10px var(--neon);
             mix-blend-mode: screen;
         }
 
         .btn:hover {
-            background: rgba(250, 175, 23, 0.8);
-            transform: translateY(-2px);
+            background: linear-gradient(45deg, var(--red), var(--gold));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 20px var(--neon);
         }
 
-        /* Эффект блеска */
         .hero h1 {
-            text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
-            animation: shine 3s infinite;
-            mix-blend-mode: screen;
+            font-size: 4rem;
+            font-weight: 900;
+            text-shadow: 0 0 15px var(--neon), 0 0 30px var(--gold);
+            animation: neon-shine 2s ease-in-out infinite alternate;
+            color: var(--gold);
         }
 
-        @keyframes shine {
-            0% {
-                text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
+        @keyframes neon-shine {
+            from {
+                text-shadow: 0 0 5px var(--neon), 0 0 10px var(--gold);
                 filter: brightness(100%);
             }
-            50% {
-                text-shadow: 0 0 20px var(--gold), 0 0 30px var(--gold);
+            to {
+                text-shadow: 0 0 30px var(--neon), 0 0 60px var(--gold);
                 filter: brightness(150%);
             }
-            100% {
-                text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold);
-                filter: brightness(100%);
-            }
+        }
+
+        .hero p {
+            font-size: 1.8rem;
+            opacity: 0.9;
+            text-shadow: 0 0 8px var(--neon);
+            color: var(--text);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .section {
+            padding: 50px 0;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            margin: 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.5);
+            padding: 30px;
+            border-radius: 15px;
+            transition: 0.3s;
+        }
+
+        .feature:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 20px var(--neon);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            background: rgba(0,0,0,0.8);
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text);
+        }
+
+        .footer a {
+            color: var(--gold);
+            text-decoration: none;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .footer a:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo">
-                <img src="logo.png" alt="Логотип Королевы Коммунизма" width="60">
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="#">Главная</a></li>
-                    <li><a href="#">О государстве</a></li>
-                    <li><a href="#">Правила</a></li>
-                    <li><a href="#">Контакты</a></li>
-                </ul>
-            </nav>
+            <!-- ... (остальное содержимое) -->
         </header>
 
         <section class="hero">
-            <h1>Добро пожаловать в виртуальное государство «Королева Коммунизма»!</h1>
-            <p>Строим утопию в цифровом мире!</p>
-            <button class="btn">Присоединиться</button>
+            <div class="hero-content">
+                <h1>Добро пожаловать в виртуальное государство «Королева Коммунизма»!</h1>
+                <p>Строим утопию в цифровом мире с блеском и гламуром!</p>
+                <button class="btn">Присоединиться ↗</button>
+            </div>
         </section>
+
+        <section class="section features-section">
+            <h2>Что мы предлагаем:</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3>Роскошь</h3>
+                    <p>Только лучшее для наших граждан</p>
+                </div>
+                div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3>Роскошь</h3>
+                    <p>Только лучшее для наших граждан</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3>Элитарность</h3>
+                    <p>Эксклюзивный доступ к привилегиям</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3>Слава</h3>
+                    <p>Станьте частью легенды</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section testimonials">
+            <h2>Отзывы наших граждан</h2>
+            <div class="testimonial">
+                <blockquote>
+                    "Это просто вау! Никогда не думала, что виртуальное государство может быть таким крутым!"
+                    <cite>- Анна, Гражданка №42</cite>
+                </blockquote>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>© 2026 Виртуальное государство «Королева Коммунизма»</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-discord"></i></a>
+            </div>
+        </footer>
     </div>
+
+    <!-- Подключение библиотек -->
+    <script src="https://kit.fontawesome.com/your-fontawesome-key.js"></script>
 </body>
 </html>
