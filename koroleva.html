@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>В Шуточное государство «Королева Коммунизма»</title>
+    <style>
+        :root {
+            --red: #D63737; /* яркий красный */
+            --gold: #FAAF17; /* золотой */
+            --purple: #800080; /* пурпурный */
+            --text: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, var(--red), var(--purple));
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--gold);
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            height: 60px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.7;
+        }
+
+        .hero {
+            background-image: url('images/background.jpg');
+            background-size: cover;
+            min-height: 400px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--gold);
+            color: var(--text);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: darken(var(--gold), 10%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header>
+        <div class="container">
+            <img src="images/queen-logo.png" alt="Королева Коммунизма" class="logo">
+            <nav>
+                <ul>
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#about">О государстве</a></li>
+                    <li><a href="#symbol">Символика</a></li>
+                    <li><a href="#economy">Экономика</a></li>
+                    <li><a href="#culture">Культура</a></li>
+                    <li><a href="#citizen">Стать гражданином</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Главная секция -->
+    <section id="home" class="hero">
+        <div class="container">
+            <h1>Добро пожаловать в Королевство Коммунизма! Шуточный сайт и т.д</h1>
+            <p>«От каждого по способностям — каждому по потребностям!»</p>
+            <a href="#citizen" class="btn">Присоединиться</a>
+        </div>
+    </section>
+
+    <!-- Секция «О государстве» -->
+    <section id="about">
+        <div class="container">
+            <h2>О государстве</h2>
+            <p>Гибридный строй: монархия + советы трудящихся...</p>
+        </div>
+    </section>
+
+    <!-- Остальные секции (аналогично) -->
+
+    <footer>
+        <p>&copy; 2026 Королева Коммунизма</p>
+    </footer>
+</body>
+</html>
