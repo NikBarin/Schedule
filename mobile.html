@@ -9,14 +9,12 @@
         m[i].l=1*new Date();
         for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=105682868', 'ym');
+    })(window, document, 'script','https://mc.yandex.ru/metrika/tag.js?id=105682868', 'ym');
 
     ym(105682868, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/105682868" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
-
-
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,6 +30,7 @@
       --accent-2: #d685ff;
       --text:#eef5ff;
       --muted:#9fb3d1;
+      --green: #6dd986;
       font-family:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -95,11 +94,34 @@
       gap:6px;
       transition:transform 0.15s ease;
     }
+    .lesson-card.active-now{
+      border-color:var(--green);
+      box-shadow:0 6px 18px rgba(109,217,134,0.25);
+    }
     .lesson-card:active{transform:scale(0.98);}
     .lesson-time{color:var(--muted);font-weight:600;font-size:13px;}
     .lesson-name{font-size:17px;font-weight:700;}
     .lesson-info{display:flex;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--muted);}
     .lesson-hw{font-size:14px;margin-top:4px;color:var(--accent);}
+
+    /* Обратный отсчёт в карточке */
+    .lesson-countdown {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 2px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .lesson-countdown.before {
+      background: rgba(103,200,255,0.12);
+      color: var(--accent);
+    }
+    .lesson-countdown.during {
+      background: rgba(109,217,134,0.12);
+      color: var(--green);
+    }
 
     /* Картинки */
     .lesson-img {
@@ -168,9 +190,53 @@
 
   <script>
     const times = [
-      '8:00–8:40','9:00–940','10:00–10:40',
+      '8:00–8:40','9:00–9:40','10:00–10:40',
       '11:00–11:40','11:50–12:30','12:40–13:20','13:40–14:20'
     ];
+
+    // Превращаем "8:00–8:40" в { start: 480, end: 520 } (минуты от полуночи)
+    function parseTimeRange(str) {
+      const [s, e] = str.split('–');
+      const toMin = t => {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+      };
+      return { start: toMin(s), end: toMin(e) };
+    }
+
+    // Превращаем секунды в "X мин Y сек"
+    function formatCountdown(totalSeconds) {
+      if (totalSeconds <= 0) return '0 сек';
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      if (m > 0) return m + ' мин ' + (s < 10 ? '0' : '') + s + ' сек';
+      return s + ' сек';
+    }
+
+    // Формат для больших промежутков (часы + минуты)
+    function formatCountdownBig(totalSeconds) {
+      if (totalSeconds <= 0) return '0 сек';
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      const parts = [];
+      if (h > 0) parts.push(h + ' ч');
+      if (m > 0) parts.push(m + ' мин');
+      parts.push(s + ' сек');
+      return parts.join(' ');
+    }
+
+    // Дни недели по номеру JS (0=вс, 1=пн, ..., 6=сб)
+    const dayNames = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+    const schoolDays = ['Понедельник','Вторник','Среда','Четверг','Пятница'];
+
+    // Возвращает следующий учебный день (с переходом через выходные)
+    function getNextSchoolDay(dayName) {
+      const idx = schoolDays.indexOf(dayName);
+      if (idx === -1) return 'Понедельник';
+      if (idx + 1 < schoolDays.length) return schoolDays[idx + 1];
+      return 'Понедельник'; // пятница → понедельник
+    }
 
     const data = {
   'Понедельник': [
@@ -199,8 +265,7 @@
     { lesson: 'Английский язык/Информатика', room: '49а/39', teacher: 'Марина Владиславовна/Иван Алексеевич', hw: '', img: '' },
     { lesson: 'История', room: '49', teacher: 'Павел Сергеевич', hw: 'Подготовится к проверочной по 1,2 параграфу', img: '' },
     { lesson: 'Физика', room: '36', teacher: 'Иван Анатольевич', hw: 'Параграф 3 упр 1 устно', img: '' }
-
-     ],
+  ],
   'Четверг': [
     { lesson: 'Труд', room: '29', teacher: 'Нет', hw: '', img: '' },
     { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '', img: '' },
@@ -209,7 +274,6 @@
     { lesson: 'Биология', room: '14', teacher: 'кто', hw: '', img: '' },
     { lesson: 'нет', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
     { lesson: 'нет', room: '48', teacher: 'Павел Сергеевич', hw: '', img: '' }
-    
   ],
   'Пятница': [
     { lesson: 'Информатика/Английский язык', room: '49а/39', teacher: 'Марина Владиславовна/Иван Алексеевич', hw: '', img: '' },
@@ -218,19 +282,21 @@
     { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: '', img: '' },
     { lesson: 'Теория Вероятности', room: '46', teacher: 'Екатерина Сергеевна', hw: '', img: '' },
     { lesson: 'Биология', room: '14', teacher: 'Елена Анатольно', hw: '', img: '' }
-    
   ]
 };
 
     const list = document.getElementById('scheduleList');
     const dayButtons = document.querySelectorAll('#daySelector button');
+    let currentDay = 'Понедельник';
 
     function renderDay(day){
+      currentDay = day;
       dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
       list.innerHTML = '';
       data[day].forEach((row, i)=>{
         const card = document.createElement('div');
         card.className = 'lesson-card';
+        card.dataset.lessonIndex = i;
         card.innerHTML = `
           <div class="lesson-time">${times[i]}</div>
           <div class="lesson-name">${row.lesson}</div>
@@ -240,6 +306,7 @@
           </div>
           ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
           ${row.img ? `<img src="${row.img}" class="lesson-img">` : ''}
+          <div class="lesson-countdown" id="cd-${i}"></div>
         `;
         list.appendChild(card);
       });
@@ -247,6 +314,74 @@
       document.querySelectorAll('.lesson-img').forEach(img => {
         img.onclick = () => openModal(img.src);
       });
+
+      updateCountdowns();
+    }
+
+    // Обновляем плашки обратного отсчёта — только для ближайшего урока
+    function updateCountdowns() {
+      const now = new Date();
+      const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const todayName = dayNames[now.getDay()];
+
+      // Очищаем все плашки
+      data[currentDay].forEach((_, i) => {
+        const el = document.getElementById('cd-' + i);
+        if (el) { el.textContent = ''; el.className = 'lesson-countdown'; }
+        const card = el ? el.closest('.lesson-card') : null;
+        if (card) card.classList.remove('active-now');
+      });
+
+      // Если показываем НЕ сегодняшний день — отсчёт не нужен
+      if (currentDay !== todayName) return;
+
+      // Ищем идущий урок или ближайший будущий
+      let found = false;
+      for (let i = 0; i < data[currentDay].length; i++) {
+        const { start, end } = parseTimeRange(times[i]);
+        const startSec = start * 60;
+        const endSec = end * 60;
+        const el = document.getElementById('cd-' + i);
+        const card = el ? el.closest('.lesson-card') : null;
+
+        if (nowSeconds >= startSec && nowSeconds < endSec) {
+          // Урок идёт — до конца
+          const diff = endSec - nowSeconds;
+          el.className = 'lesson-countdown during';
+          el.textContent = 'До конца урока: ' + formatCountdown(diff);
+          if (card) card.classList.add('active-now');
+          found = true;
+          break;
+        } else if (nowSeconds < startSec) {
+          // Урок ещё не начался — до начала
+          const diff = startSec - nowSeconds;
+          el.className = 'lesson-countdown before';
+          el.textContent = 'До начала урока: ' + formatCountdown(diff);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // Все уроки сегодня прошли — считаем до первого урока завтра
+        const nextDay = getNextSchoolDay(todayName);
+        const nextDayIdx = schoolDays.indexOf(nextDay);
+        const todayIdx = schoolDays.indexOf(todayName);
+        let offset;
+        if (todayIdx === -1) {
+          const dow = now.getDay();
+          offset = dow === 6 ? 2 : 1;
+        } else {
+          offset = nextDayIdx > todayIdx ? nextDayIdx - todayIdx : (5 - todayIdx) + nextDayIdx + 2;
+        }
+        const firstLessonStart = parseTimeRange(times[0]).start * 60;
+        const targetSeconds = offset * 86400 + firstLessonStart - nowSeconds;
+        const el = document.getElementById('cd-0');
+        if (el) {
+          el.className = 'lesson-countdown before';
+          el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
+        }
+      }
     }
 
     const modal = document.getElementById("imgModal");
@@ -262,52 +397,14 @@
     modal.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
 
     dayButtons.forEach(btn=>btn.addEventListener('click',()=>renderDay(btn.dataset.day)));
-    renderDay('Понедельник');
+
+    // Автовыбор сегодняшнего дня
+    const todayName = dayNames[new Date().getDay()];
+    const isSchoolDay = schoolDays.includes(todayName);
+    renderDay(isSchoolDay ? todayName : 'Понедельник');
+
+    // Обновляем отсчёт каждую секунду
+    setInterval(updateCountdowns, 1000);
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
