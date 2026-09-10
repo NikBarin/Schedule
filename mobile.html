@@ -282,14 +282,12 @@
   ]
 };
 
-
     const list = document.getElementById('scheduleList');
     const dayButtons = document.querySelectorAll('#daySelector button');
     let currentDay = 'Понедельник';
     let userSwitched = false;
-    let autoSwitchedTo = null; // на какой день автопереключились
+    let autoSwitchedTo = null;
 
-    // Рисует карточки дня (без вызова updateCountdowns — чтобы не было рекурсии)
     function renderDayCards(day) {
       dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
       list.innerHTML = '';
@@ -347,14 +345,12 @@
           const card = el ? el.closest('.lesson-card') : null;
 
           if (nowSeconds >= startSec && nowSeconds < endSec) {
-            // Урок идёт
             const diff = endSec - nowSeconds;
             el.className = 'lesson-countdown during';
             el.textContent = 'До конца урока: ' + formatCountdown(diff);
             if (card) card.classList.add('active-now');
             return;
           } else if (nowSeconds < startSec) {
-            // Урок ещё не начался
             const diff = startSec - nowSeconds;
             el.className = 'lesson-countdown before';
             el.textContent = 'До начала урока: ' + formatCountdown(diff);
@@ -382,11 +378,10 @@
       // Случай 3: пользователь сам выбрал другой день — без отсчёта
     }
 
-    // Считает и показывает отсчёт до первого урока следующего учебного дня
     function showNextDayCountdown(todayName, nowSeconds) {
-      const nextDay = currentDay; // уже переключились
+      const nextDay = currentDay;
       const offset = getDayOffset(todayName, nextDay);
-      const firstStart = parseTimeRange(times[0]).start * 60; // секунды от полуночи
+      const firstStart = parseTimeRange(times[0]).start * 60;
       const targetSeconds = offset * 86400 + firstStart - nowSeconds;
       const el = document.getElementById('cd-0');
       if (el) {
@@ -408,11 +403,20 @@
     modal.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
 
     dayButtons.forEach(btn=>btn.addEventListener('click',()=>{
-      userSwitched = true;
-      autoSwitchedTo = null;
-      currentDay = btn.dataset.day;
-      renderDayCards(btn.dataset.day);
-      // Плашки пустые — пользователь сам выбрал день
+      const clickedDay = btn.dataset.day;
+      const now = new Date();
+      const todayName = dayNames[now.getDay()];
+
+      if (clickedDay === todayName) {
+        // Кликнули на сегодняшний день — полный сброс, отсчёт работает
+        renderDay(clickedDay);
+      } else {
+        // Кликнули на другой день — ручной режим, без отсчёта
+        userSwitched = true;
+        autoSwitchedTo = null;
+        currentDay = clickedDay;
+        renderDayCards(clickedDay);
+      }
     }));
 
     // Автовыбор сегодняшнего дня
