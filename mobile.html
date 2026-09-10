@@ -241,7 +241,6 @@
       return 'Понедельник';
     }
 
-    // Считает смещение в днях от fromName до toName (по полной 7-дневной неделе)
     function getDayOffset(fromName, toName) {
       const fromIdx = weekDays.indexOf(fromName);
       const toIdx = weekDays.indexOf(toName);
@@ -250,7 +249,6 @@
       return 7 - fromIdx + toIdx;
     }
 
-    // Проверяет, закончились ли все уроки в данном дне
     function areLessonsDone(dayName, nowSec) {
       if (!schoolDays.includes(dayName)) return true;
       const lastEnd = parseTimeRange(times[data[dayName].length - 1]).end * 60;
@@ -269,7 +267,7 @@
   ],
   'Вторник': [
     { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: 'параграф 6 повторить', img: '' },
-    { lesson: 'Коми', room: '22', teacher: 'Марина Ивановна', hw: '', img: '' },
+    { lesson: 'Коми', room: '22', teacher: 'Марина Иванова', hw: '', img: '' },
     { lesson: 'Русский', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
     { lesson: 'Химия', room: '28', teacher: 'Варвара Викторовна', hw: 'Параграф 4 читать, выписать "Хромография" - кто открыл, на чём основан способ, № 6,9 (стр28) письменно, определения учить.', img: '' },
     { lesson: 'ОБЗР', room: '45', teacher: '', hw: '', img: '' },
@@ -373,27 +371,18 @@
           var card = el.closest('.lesson-card');
 
           if (nowSec >= startSec && nowSec < endSec) {
-            // Урок идёт
             el.className = 'lesson-countdown during';
             el.textContent = 'До конца урока: ' + formatCountdown(endSec - nowSec);
             if (card) card.classList.add('active-now');
             return;
           } else if (nowSec < startSec) {
-            // Урок ещё не начался
             el.className = 'lesson-countdown before';
             el.textContent = 'До начала урока: ' + formatCountdown(startSec - nowSec);
             return;
           }
         }
 
-        // Все уроки сегодня прошли — баннер с отсчётом до следующего дня
-        var offset = getDayOffset(todayName, nextDay);
-        var firstStart = parseTimeRange(times[0]).start * 60;
-        var targetSec = offset * 86400 + firstStart - nowSec;
-        var banner = document.createElement('div');
-        banner.className = 'countdown-banner';
-        banner.textContent = 'До начала урока: ' + formatCountdownBig(targetSec);
-        list.insertBefore(banner, list.firstChild);
+        // Все уроки сегодня прошли — ничего не показываем
         return;
       }
 
@@ -416,7 +405,6 @@
       // Случай 3: любой другой день — без отсчёта
     }
 
-    // Модальное окно
     var modal = document.getElementById("imgModal");
     var modalImg = document.getElementById("imgModalContent");
     var modalClose = document.getElementById("imgModalClose");
@@ -429,14 +417,12 @@
     modalClose.onclick = function() { modal.style.display = "none"; };
     modal.onclick = function(e) { if (e.target === modal) modal.style.display = "none"; };
 
-    // Клик по кнопке дня — просто переключаем
     dayButtons.forEach(function(btn) {
       btn.addEventListener('click', function() {
         renderDay(btn.dataset.day);
       });
     });
 
-    // Автовыбор: сегодняшний день, либо следующий если все уроки прошли
     var todayName = weekDays[new Date().getDay()];
     if (schoolDays.includes(todayName)) {
       var nowSec = new Date().getHours() * 3600 + new Date().getMinutes() * 60;
@@ -449,7 +435,6 @@
       renderDay('Понедельник');
     }
 
-    // Обновление отсчёта каждую секунду
     setInterval(updateCountdowns, 1000);
   </script>
 </body>
