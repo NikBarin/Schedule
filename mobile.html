@@ -231,7 +231,7 @@
       return parts.join(' ');
     }
 
-    const dayNames = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+    const weekDays = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
     const schoolDays = ['Понедельник','Вторник','Среда','Четверг','Пятница'];
 
     function getNextSchoolDay(dayName) {
@@ -241,12 +241,20 @@
       return 'Понедельник';
     }
 
+    // Считает смещение в днях от fromName до toName (по полной 7-дневной неделе)
     function getDayOffset(fromName, toName) {
-      const fromIdx = schoolDays.indexOf(fromName);
-      const toIdx = schoolDays.indexOf(toName);
+      const fromIdx = weekDays.indexOf(fromName);
+      const toIdx = weekDays.indexOf(toName);
       if (fromIdx === -1 || toIdx === -1) return 1;
       if (toIdx > fromIdx) return toIdx - fromIdx;
-      return (5 - fromIdx) + toIdx + 1;
+      return 7 - fromIdx + toIdx;
+    }
+
+    // Проверяет, закончились ли все уроки в данном дне
+    function areLessonsDone(dayName, nowSec) {
+      if (!schoolDays.includes(dayName)) return true;
+      const lastEnd = parseTimeRange(times[data[dayName].length - 1]).end * 60;
+      return nowSec >= lastEnd;
     }
 
     const data = {
@@ -331,67 +339,76 @@
     }
 
     function updateCountdowns() {
-      const now = new Date();
-      const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      const todayName = dayNames[now.getDay()];
+      var now = new Date();
+      var nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      var todayName = weekDays[now.getDay()];
+      var isTodaySchoolDay = schoolDays.includes(todayName);
+      var nextDay = getNextSchoolDay(todayName);
 
-      // Очищаем все плашки и баннер
-      data[currentDay].forEach((_, i) => {
-        const el = document.getElementById('cd-' + i);
-        if (el) { el.textContent = ''; el.className = 'lesson-countdown'; }
-        const card = el ? el.closest('.lesson-card') : null;
-        if (card) card.classList.remove('active-now');
-      });
-      const oldBanner = document.querySelector('.countdown-banner');
+      // Очищаем все плашки
+      for (var i = 0; i < data[currentDay].length; i++) {
+        var el = document.getElementById('cd-' + i);
+        if (el) {
+          el.textContent = '';
+          el.className = 'lesson-countdown';
+        }
+        if (el) {
+          var card = el.closest('.lesson-card');
+          if (card) card.classList.remove('active-now');
+        }
+      }
+
+      // Удаляем старый баннер
+      var oldBanner = document.querySelector('.countdown-banner');
       if (oldBanner) oldBanner.remove();
 
-      // Случай 1: показываем сегодняшний день
-      if (currentDay === todayName) {
-        for (let i = 0; i < data[currentDay].length; i++) {
-          const { start, end } = parseTimeRange(times[i]);
-          const startSec = start * 60;
-          const endSec = end * 60;
-          const el = document.getElementById('cd-' + i);
-          const card = el ? el.closest('.lesson-card') : null;
+      // Случай 1: открыт сегодняшний день
+      if (currentDay === todayName && isTodaySchoolDay) {
+        for (var i = 0; i < data[currentDay].length; i++) {
+          var range = parseTimeRange(times[i]);
+          var startSec = range.start * 60;
+          var endSec = range.end * 60;
+          var el = document.getElementById('cd-' + i);
+          if (!el) continue;
+          var card = el.closest('.lesson-card');
 
-          if (nowSeconds >= startSec && nowSeconds < endSec) {
+          if (nowSec >= startSec && nowSec < endSec) {
             // Урок идёт
-            const diff = endSec - nowSeconds;
             el.className = 'lesson-countdown during';
-            el.textContent = 'До конца урока: ' + formatCountdown(diff);
+            el.textContent = 'До конца урока: ' + formatCountdown(endSec - nowSec);
             if (card) card.classList.add('active-now');
             return;
-          } else if (nowSeconds < startSec) {
+          } else if (nowSec < startSec) {
             // Урок ещё не начался
-            const diff = startSec - nowSeconds;
             el.className = 'lesson-countdown before';
-            el.textContent = 'До начала урока: ' + formatCountdown(diff);
+            el.textContent = 'До начала урока: ' + formatCountdown(startSec - nowSec);
             return;
           }
         }
 
-        // Все уроки сегодня прошли — показываем баннер с отсчётом до следующего дня
-        const nextDay = getNextSchoolDay(todayName);
-        const offset = getDayOffset(todayName, nextDay);
-        const firstStart = parseTimeRange(times[0]).start * 60;
-        const targetSeconds = offset * 86400 + firstStart - nowSeconds;
-        const banner = document.createElement('div');
+        // Все уроки сегодня прошли — баннер с отсчётом до следующего дня
+        var offset = getDayOffset(todayName, nextDay);
+        var firstStart = parseTimeRange(times[0]).start * 60;
+        var targetSec = offset * 86400 + firstStart - nowSec;
+        var banner = document.createElement('div');
         banner.className = 'countdown-banner';
-        banner.textContent = 'Все уроки на сегодня закончились. До начала урока: ' + formatCountdownBig(targetSeconds);
+        banner.textContent = 'До начала урока: ' + formatCountdownBig(targetSec);
         list.insertBefore(banner, list.firstChild);
         return;
       }
 
-      // Случай 2: показываем следующий учебный день (когда сегодня все уроки прошли)
-      const nextDay = getNextSchoolDay(todayName);
+      // Случай 2: открыт следующий учебный день и сегодня все уроки прошли
       if (currentDay === nextDay) {
-        const offset = getDayOffset(todayName, currentDay);
-        const firstStart = parseTimeRange(times[0]).start * 60;
-        const targetSeconds = offset * 86400 + firstStart - nowSeconds;
-        const el = document.getElementById('cd-0');
-        if (el) {
-          el.className = 'lesson-countdown before';
-          el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
+        var todayDone = !isTodaySchoolDay || areLessonsDone(todayName, nowSec);
+        if (todayDone) {
+          var offset = getDayOffset(todayName, currentDay);
+          var firstStart = parseTimeRange(times[0]).start * 60;
+          var targetSec = offset * 86400 + firstStart - nowSec;
+          var el = document.getElementById('cd-0');
+          if (el) {
+            el.className = 'lesson-countdown before';
+            el.textContent = 'До начала урока: ' + formatCountdownBig(targetSec);
+          }
         }
         return;
       }
@@ -400,31 +417,30 @@
     }
 
     // Модальное окно
-    const modal = document.getElementById("imgModal");
-    const modalImg = document.getElementById("imgModalContent");
-    const modalClose = document.getElementById("imgModalClose");
+    var modal = document.getElementById("imgModal");
+    var modalImg = document.getElementById("imgModalContent");
+    var modalClose = document.getElementById("imgModalClose");
 
     function openModal(src) {
       modalImg.src = src;
       modal.style.display = "flex";
     }
 
-    modalClose.onclick = () => modal.style.display = "none";
-    modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+    modalClose.onclick = function() { modal.style.display = "none"; };
+    modal.onclick = function(e) { if (e.target === modal) modal.style.display = "none"; };
 
-    // Клик по кнопке дня — просто показываем этот день
-    dayButtons.forEach(btn => btn.addEventListener('click', () => {
-      renderDay(btn.dataset.day);
-    }));
+    // Клик по кнопке дня — просто переключаем
+    dayButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        renderDay(btn.dataset.day);
+      });
+    });
 
     // Автовыбор: сегодняшний день, либо следующий если все уроки прошли
-    const todayName = dayNames[new Date().getDay()];
+    var todayName = weekDays[new Date().getDay()];
     if (schoolDays.includes(todayName)) {
-      const lastEnd = parseTimeRange(times[data[todayName].length - 1]).end * 60;
-      const now = new Date();
-      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60;
-      if (nowSec >= lastEnd) {
-        // Все уроки прошли — открываем следующий день
+      var nowSec = new Date().getHours() * 3600 + new Date().getMinutes() * 60;
+      if (areLessonsDone(todayName, nowSec)) {
         renderDay(getNextSchoolDay(todayName));
       } else {
         renderDay(todayName);
@@ -433,7 +449,7 @@
       renderDay('Понедельник');
     }
 
-    // Обновляем отсчёт каждую секунду
+    // Обновление отсчёта каждую секунду
     setInterval(updateCountdowns, 1000);
   </script>
 </body>
