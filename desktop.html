@@ -16,6 +16,7 @@
             --accent-2: #d685ff;
             --text: #eef5ff;
             --muted: #9fb3d1;
+            --green: #6dd986;
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
         }
 
@@ -106,12 +107,17 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.3s ease;
         }
 
         .lesson-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .lesson-card.active-now {
+            border-color: var(--green);
+            box-shadow: 0 8px 24px rgba(109, 217, 134, 0.25);
         }
 
         .lesson-time {
@@ -141,6 +147,24 @@
             line-height: 1.4;
         }
 
+        .lesson-countdown {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 4px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            display: inline-block;
+            width: fit-content;
+        }
+        .lesson-countdown.before {
+            background: rgba(103, 200, 255, 0.12);
+            color: var(--accent);
+        }
+        .lesson-countdown.during {
+            background: rgba(109, 217, 134, 0.12);
+            color: var(--green);
+        }
+
         .lesson-img {
             margin-top: 12px;
             border-radius: 14px;
@@ -156,7 +180,6 @@
             border-color: var(--accent);
         }
 
-        /* Модальное окно */
         #imgModal {
             position: fixed;
             inset: 0;
@@ -214,22 +237,20 @@
             max-width: 1200px;
         }
 
-        /* Анимация появления модального окна */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-/* Адаптация для очень широких экранов */
-@media (min-width: 1400px) {
-    body {
-        padding: 40px;
-    }
-    .day-selector, .schedule, footer {
-        max-width: 1400px;
-    }
-}
-</style>
+        @media (min-width: 1400px) {
+            body {
+                padding: 40px;
+            }
+            .day-selector, .schedule, footer {
+                max-width: 1400px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -249,7 +270,6 @@
 
     <footer>Сделано с помощью ChatGPT</footer>
 
-    <!-- Модальное окно для изображений -->
     <div id="imgModal">
         <div id="imgModalClose">✕</div>
         <img id="imgModalContent" src="" alt="Увеличенное изображение">
@@ -261,7 +281,57 @@
             '15:40–16:20', '16:30–17:10', '17:20–18:00', '18:10–18:50'
         ];
 
-        /* Ваше расписание с примерами изображений */
+        // Превращаем "12:40–13:20" в { start: 760, end: 800 } (минуты от полуночи)
+        function parseTimeRange(str) {
+            const [s, e] = str.split('–');
+            const toMin = t => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 60 + m;
+            };
+            return { start: toMin(s), end: toMin(e) };
+        }
+
+        // Формат "X мин Y сек"
+        function formatCountdown(totalSeconds) {
+            if (totalSeconds <= 0) return '0 сек';
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            if (m > 0) return m + ' мин ' + (s < 10 ? '0' : '') + s + ' сек';
+            return s + ' сек';
+        }
+
+        // Формат для больших промежутков (часы + минуты)
+        function formatCountdownBig(totalSeconds) {
+            if (totalSeconds <= 0) return '0 сек';
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            const parts = [];
+            if (h > 0) parts.push(h + ' ч');
+            if (m > 0) parts.push(m + ' мин');
+            parts.push(s + ' сек');
+            return parts.join(' ');
+        }
+
+        // Дни недели по номеру JS (0=вс, 1=пн, ..., 6=сб)
+        const dayNames = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+        const schoolDays = ['Понедельник','Вторник','Среда','Четверг','Пятница'];
+
+        function getNextSchoolDay(dayName) {
+            const idx = schoolDays.indexOf(dayName);
+            if (idx === -1) return 'Понедельник';
+            if (idx + 1 < schoolDays.length) return schoolDays[idx + 1];
+            return 'Понедельник';
+        }
+
+        function getDayOffset(fromName, toName) {
+            const fromIdx = schoolDays.indexOf(fromName);
+            const toIdx = schoolDays.indexOf(toName);
+            if (fromIdx === -1 || toIdx === -1) return 1;
+            if (toIdx > fromIdx) return toIdx - fromIdx;
+            return (5 - fromIdx) + toIdx + 1;
+        }
+
         const data = {
   'Понедельник': [
     { lesson: 'Классный час', room: '45', teacher: 'Виктор Викторович', hw: '', img: 'img1.jpg' },
@@ -311,19 +381,17 @@
 
         const list = document.getElementById('scheduleList');
         const dayButtons = document.querySelectorAll('#daySelector button');
+        let currentDay = 'Понедельник';
+        let userSwitched = false;
+        let autoSwitchedTo = null;
 
-        function renderDay(day) {
-            // Активируем нужную кнопку
+        // Рисует карточки дня (без вызова updateCountdowns)
+        function renderDayCards(day) {
             dayButtons.forEach(b => b.classList.toggle('active', b.dataset.day === day));
-
-            // Очищаем список уроков
             list.innerHTML = '';
-
-            // Заполняем расписание для выбранного дня
             data[day].forEach((row, i) => {
                 const card = document.createElement('div');
                 card.className = 'lesson-card';
-
                 card.innerHTML = `
                     <div class="lesson-time">${times[i]}</div>
                     <div class="lesson-name">${row.lesson}</div>
@@ -333,50 +401,126 @@
                     </div>
                     ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
                     ${row.img ? `<img src="${row.img}" class="lesson-img" alt="Иллюстрация к уроку">` : ''}
+                    <div class="lesson-countdown" id="cd-${i}"></div>
                 `;
-
                 list.appendChild(card);
             });
-
-            // Добавляем обработчики для изображений
             document.querySelectorAll('.lesson-img').forEach(img => {
                 img.onclick = () => openModal(img.src);
             });
         }
 
-        // Элементы модального окна
+        function renderDay(day) {
+            currentDay = day;
+            userSwitched = false;
+            autoSwitchedTo = null;
+            renderDayCards(day);
+            updateCountdowns();
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+            const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const todayName = dayNames[now.getDay()];
+
+            // Очищаем все плашки
+            data[currentDay].forEach((_, i) => {
+                const el = document.getElementById('cd-' + i);
+                if (el) { el.textContent = ''; el.className = 'lesson-countdown'; }
+                const card = el ? el.closest('.lesson-card') : null;
+                if (card) card.classList.remove('active-now');
+            });
+
+            // Случай 1: показываем сегодняшний день
+            if (currentDay === todayName) {
+                autoSwitchedTo = null;
+
+                for (let i = 0; i < data[currentDay].length; i++) {
+                    const { start, end } = parseTimeRange(times[i]);
+                    const startSec = start * 60;
+                    const endSec = end * 60;
+                    const el = document.getElementById('cd-' + i);
+                    const card = el ? el.closest('.lesson-card') : null;
+
+                    if (nowSeconds >= startSec && nowSeconds < endSec) {
+                        // Урок идёт
+                        const diff = endSec - nowSeconds;
+                        el.className = 'lesson-countdown during';
+                        el.textContent = 'До конца урока: ' + formatCountdown(diff);
+                        if (card) card.classList.add('active-now');
+                        return;
+                    } else if (nowSeconds < startSec) {
+                        // Урок ещё не начался
+                        const diff = startSec - nowSeconds;
+                        el.className = 'lesson-countdown before';
+                        el.textContent = 'До начала урока: ' + formatCountdown(diff);
+                        return;
+                    }
+                }
+
+                // Все уроки сегодня прошли — автопереключение на следующий день
+                if (!userSwitched) {
+                    const nextDay = getNextSchoolDay(todayName);
+                    autoSwitchedTo = nextDay;
+                    currentDay = nextDay;
+                    renderDayCards(nextDay);
+                    showNextDayCountdown(todayName, nowSeconds);
+                }
+                return;
+            }
+
+            // Случай 2: автопереключились на следующий день — продолжаем отсчёт
+            if (autoSwitchedTo === currentDay && !userSwitched) {
+                showNextDayCountdown(todayName, nowSeconds);
+                return;
+            }
+
+            // Случай 3: пользователь сам выбрал другой день — без отсчёта
+        }
+
+        // Считает и показывает отсчёт до первого урока следующего учебного дня
+        function showNextDayCountdown(todayName, nowSeconds) {
+            const nextDay = currentDay;
+            const offset = getDayOffset(todayName, nextDay);
+            const firstStart = parseTimeRange(times[0]).start * 60;
+            const targetSeconds = offset * 86400 + firstStart - nowSeconds;
+            const el = document.getElementById('cd-0');
+            if (el) {
+                el.className = 'lesson-countdown before';
+                el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
+            }
+        }
+
+        // Модальное окно
         const modal = document.getElementById("imgModal");
         const modalImg = document.getElementById("imgModalContent");
         const modalClose = document.getElementById("imgModalClose");
 
-        // Открытие модального окна с изображением
         function openModal(src) {
             modalImg.src = src;
             modal.style.display = "flex";
         }
 
-        // Закрытие модального окна по клику на крестик или фон
         modalClose.onclick = () => modal.style.display = "none";
         modal.onclick = (e) => {
             if (e.target === modal) modal.style.display = "none";
         };
 
-        // Обработчики для кнопок дней недели
-        dayButtons.forEach(btn => {
-            btn.addEventListener('click', () => renderDay(btn.dataset.day));
-        });
+        // Обработчики кнопок дней
+        dayButtons.forEach(btn => btn.addEventListener('click', () => {
+            userSwitched = true;
+            autoSwitchedTo = null;
+            currentDay = btn.dataset.day;
+            renderDayCards(btn.dataset.day);
+        }));
 
-        // Инициализация: показываем понедельник при загрузке
-        renderDay('Понедельник');
+        // Автовыбор сегодняшнего дня при загрузке
+        const todayName = dayNames[new Date().getDay()];
+        const isSchoolDay = schoolDays.includes(todayName);
+        renderDay(isSchoolDay ? todayName : 'Понедельник');
+
+        // Обновление отсчёта каждую секунду
+        setInterval(updateCountdowns, 1000);
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
