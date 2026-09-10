@@ -122,6 +122,18 @@
       color: var(--green);
     }
 
+    .countdown-banner {
+      background: rgba(103,200,255,0.1);
+      border: 1px solid rgba(103,200,255,0.25);
+      border-radius: 14px;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
     .lesson-img {
       margin-top: 8px;
       border-radius: 10px;
@@ -207,10 +219,12 @@
 
     function formatCountdownBig(totalSeconds) {
       if (totalSeconds <= 0) return '0 сек';
-      const h = Math.floor(totalSeconds / 3600);
+      const d = Math.floor(totalSeconds / 86400);
+      const h = Math.floor((totalSeconds % 86400) / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
       const parts = [];
+      if (d > 0) parts.push(d + ' д');
       if (h > 0) parts.push(h + ' ч');
       if (m > 0) parts.push(m + ' мин');
       parts.push(s + ' сек');
@@ -285,13 +299,11 @@
     const list = document.getElementById('scheduleList');
     const dayButtons = document.querySelectorAll('#daySelector button');
     let currentDay = 'Понедельник';
-    let userSwitched = false;
-    let autoSwitchedTo = null;
 
     function renderDayCards(day) {
-      dayButtons.forEach(b=>b.classList.toggle('active', b.dataset.day===day));
+      dayButtons.forEach(b => b.classList.toggle('active', b.dataset.day === day));
       list.innerHTML = '';
-      data[day].forEach((row, i)=>{
+      data[day].forEach((row, i) => {
         const card = document.createElement('div');
         card.className = 'lesson-card';
         card.innerHTML = `
@@ -312,10 +324,8 @@
       });
     }
 
-    function renderDay(day){
+    function renderDay(day) {
       currentDay = day;
-      userSwitched = false;
-      autoSwitchedTo = null;
       renderDayCards(day);
       updateCountdowns();
     }
@@ -325,18 +335,18 @@
       const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
       const todayName = dayNames[now.getDay()];
 
-      // Очищаем все плашки
+      // Очищаем все плашки и баннер
       data[currentDay].forEach((_, i) => {
         const el = document.getElementById('cd-' + i);
         if (el) { el.textContent = ''; el.className = 'lesson-countdown'; }
         const card = el ? el.closest('.lesson-card') : null;
         if (card) card.classList.remove('active-now');
       });
+      const oldBanner = document.querySelector('.countdown-banner');
+      if (oldBanner) oldBanner.remove();
 
       // Случай 1: показываем сегодняшний день
       if (currentDay === todayName) {
-        autoSwitchedTo = null;
-
         for (let i = 0; i < data[currentDay].length; i++) {
           const { start, end } = parseTimeRange(times[i]);
           const startSec = start * 60;
@@ -345,12 +355,14 @@
           const card = el ? el.closest('.lesson-card') : null;
 
           if (nowSeconds >= startSec && nowSeconds < endSec) {
+            // Урок идёт
             const diff = endSec - nowSeconds;
             el.className = 'lesson-countdown during';
             el.textContent = 'До конца урока: ' + formatCountdown(diff);
             if (card) card.classList.add('active-now');
             return;
           } else if (nowSeconds < startSec) {
+            // Урок ещё не начался
             const diff = startSec - nowSeconds;
             el.className = 'lesson-countdown before';
             el.textContent = 'До начала урока: ' + formatCountdown(diff);
@@ -358,38 +370,36 @@
           }
         }
 
-        // Все уроки сегодня прошли — автопереключение на следующий день
-        if (!userSwitched) {
-          const nextDay = getNextSchoolDay(todayName);
-          autoSwitchedTo = nextDay;
-          currentDay = nextDay;
-          renderDayCards(nextDay);
-          showNextDayCountdown(todayName, nowSeconds);
+        // Все уроки сегодня прошли — показываем баннер с отсчётом до следующего дня
+        const nextDay = getNextSchoolDay(todayName);
+        const offset = getDayOffset(todayName, nextDay);
+        const firstStart = parseTimeRange(times[0]).start * 60;
+        const targetSeconds = offset * 86400 + firstStart - nowSeconds;
+        const banner = document.createElement('div');
+        banner.className = 'countdown-banner';
+        banner.textContent = 'Все уроки на сегодня закончились. До начала урока: ' + formatCountdownBig(targetSeconds);
+        list.insertBefore(banner, list.firstChild);
+        return;
+      }
+
+      // Случай 2: показываем следующий учебный день (когда сегодня все уроки прошли)
+      const nextDay = getNextSchoolDay(todayName);
+      if (currentDay === nextDay) {
+        const offset = getDayOffset(todayName, currentDay);
+        const firstStart = parseTimeRange(times[0]).start * 60;
+        const targetSeconds = offset * 86400 + firstStart - nowSeconds;
+        const el = document.getElementById('cd-0');
+        if (el) {
+          el.className = 'lesson-countdown before';
+          el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
         }
         return;
       }
 
-      // Случай 2: автопереключились на следующий день — продолжаем отсчёт
-      if (autoSwitchedTo === currentDay && !userSwitched) {
-        showNextDayCountdown(todayName, nowSeconds);
-        return;
-      }
-
-      // Случай 3: пользователь сам выбрал другой день — без отсчёта
+      // Случай 3: любой другой день — без отсчёта
     }
 
-    function showNextDayCountdown(todayName, nowSeconds) {
-      const nextDay = currentDay;
-      const offset = getDayOffset(todayName, nextDay);
-      const firstStart = parseTimeRange(times[0]).start * 60;
-      const targetSeconds = offset * 86400 + firstStart - nowSeconds;
-      const el = document.getElementById('cd-0');
-      if (el) {
-        el.className = 'lesson-countdown before';
-        el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
-      }
-    }
-
+    // Модальное окно
     const modal = document.getElementById("imgModal");
     const modalImg = document.getElementById("imgModalContent");
     const modalClose = document.getElementById("imgModalClose");
@@ -400,29 +410,28 @@
     }
 
     modalClose.onclick = () => modal.style.display = "none";
-    modal.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
-    dayButtons.forEach(btn=>btn.addEventListener('click',()=>{
-      const clickedDay = btn.dataset.day;
-      const now = new Date();
-      const todayName = dayNames[now.getDay()];
-
-      if (clickedDay === todayName) {
-        // Кликнули на сегодняшний день — полный сброс, отсчёт работает
-        renderDay(clickedDay);
-      } else {
-        // Кликнули на другой день — ручной режим, без отсчёта
-        userSwitched = true;
-        autoSwitchedTo = null;
-        currentDay = clickedDay;
-        renderDayCards(clickedDay);
-      }
+    // Клик по кнопке дня — просто показываем этот день
+    dayButtons.forEach(btn => btn.addEventListener('click', () => {
+      renderDay(btn.dataset.day);
     }));
 
-    // Автовыбор сегодняшнего дня
+    // Автовыбор: сегодняшний день, либо следующий если все уроки прошли
     const todayName = dayNames[new Date().getDay()];
-    const isSchoolDay = schoolDays.includes(todayName);
-    renderDay(isSchoolDay ? todayName : 'Понедельник');
+    if (schoolDays.includes(todayName)) {
+      const lastEnd = parseTimeRange(times[data[todayName].length - 1]).end * 60;
+      const now = new Date();
+      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60;
+      if (nowSec >= lastEnd) {
+        // Все уроки прошли — открываем следующий день
+        renderDay(getNextSchoolDay(todayName));
+      } else {
+        renderDay(todayName);
+      }
+    } else {
+      renderDay('Понедельник');
+    }
 
     // Обновляем отсчёт каждую секунду
     setInterval(updateCountdowns, 1000);
